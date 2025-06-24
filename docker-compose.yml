@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  shadowledger-node:
+    build: .
+    ports:
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:5000:5000"
+    restart: unless-stopped

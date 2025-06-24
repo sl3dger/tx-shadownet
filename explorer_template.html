@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ShadowLedger Explorer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            padding: 2em;
+        }
+        h1 {
+            color: #76ff03;
+            margin-bottom: 1em;
+        }
+        .search {
+            margin-bottom: 2em;
+        }
+        .search input {
+            padding: 0.5em;
+            width: 300px;
+            background: #1e1e1e;
+            border: 1px solid #444;
+            color: #fff;
+        }
+        .block {
+            background: #1e1e1e;
+            padding: 1em;
+            margin-bottom: 1em;
+            border-left: 4px solid #76ff03;
+            transition: 0.2s;
+        }
+        .block:hover {
+            background: #2c2c2c;
+        }
+        .highlight {
+            background: #333;
+            padding: 0.5em;
+            margin-top: 0.5em;
+            font-size: 0.9em;
+            border-left: 2px solid #76ff03;
+        }
+    </style>
+    <script>
+        function searchBlocks() {
+            const input = document.getElementById("search").value.toLowerCase();
+            const blocks = document.getElementsByClassName("block");
+            for (let blk of blocks) {
+                blk.style.display = blk.innerText.toLowerCase().includes(input) ? "block" : "none";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>🔎 ShadowLedger Explorer</h1>
+    <div class="search">
+        <input type="text" id="search" onkeyup="searchBlocks()" placeholder="Search block, address or hash...">
+    </div>
+    {% for block in chain %}
+    <div class="block">
+        <strong>Block #{{ block.index }}</strong><br>
+        <div class="highlight">Hash: {{ block.hash }}</div>
+        <div class="highlight">Miner: {{ block.address }}</div>
+        <div class="highlight">Reward: {{ block.reward }} SC</div>
+        <div class="highlight">TX count: {{ block.txs|length }}</div>
+    </div>
+    {% endfor %}
+</body>
+</html>
