@@ -1,9 +1,43 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  shadowledger-node:
+  shadowledger:
     build: .
+    container_name: shadowledger-node
     ports:
-      - "127.0.0.1:8888:8888"
-      - "127.0.0.1:5000:5000"
+      - "8000:8000"  # API
+      - "8888:8888"  # P2P
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a miner service
+  miner:
+    build: .
+    container_name: shadowledger-miner
+    command: ["python", "miner.py", "--address", "shadow1miner000000000000000000000000000000"]
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+    depends_on:
+      - shadowledger
+    restart: unless-stopped
+    profiles:
+      - mining
+
+networks:
+  default:
+    name: shadowledger-network

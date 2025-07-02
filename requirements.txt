@@ -1,5 +1,24 @@
-ecdsa
-mnemonic
+# Core blockchain dependencies
+ecdsa==0.18.0
+mnemonic==0.20
 
-pytest
-flask
+# API framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+
+# Data validation
+pydantic==2.5.0
+
+# HTTP client for P2P communication
+requests==2.31.0
+
+# Logging and monitoring
+structlog==23.2.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# Development and production tools
+python-dotenv==1.0.0

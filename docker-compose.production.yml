@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Tor service for anonymous networking
+  tor:
+    image: dperson/torproxy:latest
+    container_name: shadowledger-tor
+    restart: unless-stopped
+    volumes:
+      - ./tor/torrc:/etc/tor/torrc:ro
+      - ./tor/data:/var/lib/tor
+    ports:
+      - "9050:9050"  # SOCKS proxy
+      - "9051:9051"  # Control port
+    networks:
+      - shadowledger-network
+
+  # ShadowLedger node with API and P2P
+  shadowledger:
+    build: .
+    container_name: shadowledger-node
+    restart: unless-stopped
+    depends_on:
+      - tor
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./tor/hostname:/app/tor_hostname:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - TOR_SOCKS_HOST=tor
+      - TOR_SOCKS_PORT=9050
+    networks:
+      - shadowledger-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Dedicated miner service
+  miner:
+    build: .
+    container_name: shadowledger-miner
+    restart: unless-stopped
+    depends_on:
+      - shadowledger
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - MINER_ADDRESS=shadow1miner000000000000000000000000000000
+    command: ["python", "miner.py", "--address", "shadow1miner000000000000000000000000000000"]
+    profiles:
+      - mining
+
+  # Optional: Web explorer (if you want to expose it)
+  explorer:
+    build: .
+    container_name: shadowledger-explorer
+    restart: unless-stopped
+    depends_on:
+      - shadowledger
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["python", "explorer.py"]
+    profiles:
+      - explorer
+
+networks:
+  shadowledger-network:
+    driver: bridge
+    name: shadowledger-network 
