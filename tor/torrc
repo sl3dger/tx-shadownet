@@ -1,0 +1,35 @@
+# Tor configuration for ShadowLedger hidden services
+
+# Basic Tor settings
+SocksPort 9050
+ControlPort 9051
+CookieAuthentication 1
+
+# Hidden service for ShadowLedger P2P network
+HiddenServiceDir /var/lib/tor/shadowledger_p2p/
+HiddenServicePort 8888 127.0.0.1:8888
+
+# Hidden service for ShadowLedger API (optional)
+HiddenServiceDir /var/lib/tor/shadowledger_api/
+HiddenServicePort 8000 127.0.0.1:8000
+
+# Security settings
+AvoidDiskWrites 1
+MaxCircuitDirtiness 600
+MaxClientCircuitsPending 48
+EnforceDistinctSubnets 1
+
+# Performance settings
+CircuitBuildTimeout 30
+LearnCircuitBuildTimeout 0
+MaxOnionQueueDelay 1750
+NewCircuitPeriod 15
+NumEntryGuards 6
+NumEntryGuards6 4
+NumDirectoryGuards 4
+KeepalivePeriod 300
+KeepaliveConn 0
+
+# Logging
+Log notice file /var/log/tor/notices.log
+Log info file /var/log/tor/info.log 

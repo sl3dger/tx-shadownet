@@ -8,6 +8,84 @@ from block import load_chain
 
 MEMPOOL_FILE = "mempool.json"
 
+class Transaction:
+    def __init__(self, sender: str, recipient: str, amount: float, private_key: str):
+        self.sender = sender
+        self.recipient = recipient
+        self.amount = amount
+        self.private_key = private_key
+        self.timestamp = time.time()
+        self.txid = None
+        self.signature = None
+        
+    def sign(self):
+        """Sign the transaction"""
+        try:
+            # Create transaction data
+            tx_data = {
+                "from": self.sender,
+                "to": self.recipient,
+                "amount": self.amount,
+                "timestamp": self.timestamp
+            }
+            
+            # Sign the transaction
+            tx_string = json.dumps(tx_data, sort_keys=True)
+            private_key_obj = SigningKey.from_string(bytes.fromhex(self.private_key), curve=SECP256k1)
+            self.signature = private_key_obj.sign(tx_string.encode()).hex()
+            
+            # Generate transaction ID
+            self.txid = sha256(tx_string.encode()).hexdigest()
+            
+            return True
+        except Exception as e:
+            print(f"Error signing transaction: {e}")
+            return False
+    
+    def is_valid(self) -> bool:
+        """Validate the transaction"""
+        try:
+            # Check if transaction is signed
+            if not self.signature:
+                if not self.sign():
+                    return False
+            
+            # Verify signature
+            tx_data = {
+                "from": self.sender,
+                "to": self.recipient,
+                "amount": self.amount,
+                "timestamp": self.timestamp
+            }
+            
+            tx_string = json.dumps(tx_data, sort_keys=True)
+            public_key = SigningKey.from_string(bytes.fromhex(self.private_key), curve=SECP256k1).get_verifying_key()
+            pub_hex = public_key.to_string().hex()
+            
+            if not verify_signature(tx_data, self.signature, pub_hex):
+                return False
+            
+            # Check sender balance
+            sender_balance = get_balance(self.sender)
+            if sender_balance < self.amount:
+                return False
+            
+            return True
+        except Exception as e:
+            print(f"Error validating transaction: {e}")
+            return False
+    
+    def to_dict(self) -> dict:
+        """Convert transaction to dictionary"""
+        return {
+            "from": self.sender,
+            "to": self.recipient,
+            "amount": self.amount,
+            "timestamp": self.timestamp,
+            "signature": self.signature,
+            "txid": self.txid
+        }
+
 def get_address(pub_hex):
     return "shadow1" + sha256(bytes.fromhex(pub_hex)).hexdigest()[:32]
 
